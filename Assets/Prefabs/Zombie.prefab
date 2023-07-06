@@ -144,7 +144,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 7
 --- !u!114 &3423131053178966302
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -161,4 +161,5 @@ MonoBehaviour:
   capCol2D: {fileID: 3423131053178966301}
   audioSource: {fileID: 0}
   hitSound: {fileID: 8300000, guid: e01629a2c8ebc6b47a9d41175a1b14f6, type: 3}
+  clearSound: {fileID: 8300000, guid: eeb781ce21466d34788452cabfb43994, type: 3}
   SceneIndex: 2

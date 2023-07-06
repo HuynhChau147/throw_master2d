@@ -6,25 +6,29 @@ using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
+
     private bool isPaused;
     private bool isGameOver;
+    private int bombCounterF;
     [SerializeField] private GameObject pauseButton;
     [SerializeField] private GameObject pauseScreen;
     [SerializeField] private GameObject WinScreen;
     [SerializeField] private GameObject gameOverScreen;
-    [SerializeField] private AudioClip gameOverSound;
     [SerializeField] private AudioSource audioSrc;
+    [SerializeField] private TextMeshProUGUI bombCounter;
     [SerializeField] private Enemy zombie;
+    [SerializeField] private GameplayManager gm;
 
     // Active GameOver screen
     public void GameOver()
     {
         gameOverScreen.SetActive(true);
-        audioSrc.PlayOneShot(gameOverSound);
         isGameOver = true;
     }
 
     private void Update() {
+        bombCounterF = gm.getBombLeft();
+        bombCounter.text = $"x{bombCounterF.ToString()}";
 
         if(Input.GetKeyDown(KeyCode.Escape))
         {
@@ -34,6 +38,7 @@ public class UIManager : MonoBehaviour
         if((zombie.getWinStatus()))
         {
             audioSrc.Stop();
+            Debug.Log("You win");
             Invoke("Win",2f);
         }
     }

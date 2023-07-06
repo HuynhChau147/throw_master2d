@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 public class GameplayManager : MonoBehaviour
@@ -12,12 +13,16 @@ public class GameplayManager : MonoBehaviour
     public float maxLength = 3f;
     public AudioSource audioSource;
     public AudioClip attackSound;
+    public float timeLimit = 10f;
+    private float timer = 0f;
     [SerializeField] GameObject ballPrefab;
+    [SerializeField] Animator ninjaAnimator;
+    [SerializeField] Enemy zombie;
+    [SerializeField] UIManager UI;
     Rigidbody2D ballRb;
     Collider2D ballCol;
-
     private int bombNumbers = 3;
-
+    private bool isLastBomb;
     bool isDragging;
     bool canShooting;
 
@@ -30,6 +35,7 @@ public class GameplayManager : MonoBehaviour
     {
         cam = Camera.main;
         canShooting = true;
+        isLastBomb = false;
     }
 
     // Update is called once per frame
@@ -47,6 +53,7 @@ public class GameplayManager : MonoBehaviour
         {
             if(bombNumbers < 0)
             {return;}
+            isDragging = true;
             if(ballRb == null)
             {
                 CreateBall();
@@ -55,7 +62,6 @@ public class GameplayManager : MonoBehaviour
             ballRb.isKinematic = true;
             
             isDragging = true;
-            ballRb.transform.position = centerPoint.position;
             OnDragStart();
 
             if (ballCol)
@@ -69,6 +75,7 @@ public class GameplayManager : MonoBehaviour
             if(ballRb != null)
             {
                 isDragging = false;
+                ninjaAnimator.SetBool("isThrow",false);
                 OnDragEnd();
             }
         }
@@ -82,16 +89,30 @@ public class GameplayManager : MonoBehaviour
         {
             Destroy(ballRb.gameObject,0.5f);
         }
+
+        if(isLastBomb)
+        {
+            timer += Time.deltaTime;
+
+            if (timer >= timeLimit)
+            {
+                if(zombie.getWinStatus() == false)
+                {
+                    audioSource.Stop();
+                    UI.GameOver();
+                }
+            }
+        }
     }
 
     #region Drag
 
     private void OnDragStart() {
-        trajectory.Show();
+        ninjaAnimator.SetBool("isThrow",true);
     }
 
     private void OnDrag() {
-        canShooting = false;
+        trajectory.Show();
         distance = Vector2.Distance(currentPos, centerPoint.position);
         direction = (currentPos - centerPoint.position).normalized;
         force = distance*direction*pushForce;
@@ -100,6 +121,12 @@ public class GameplayManager : MonoBehaviour
     }
 
     private void OnDragEnd() {
+        
+        if(!canShooting)
+        {
+            return;
+        }
+
         if(bombNumbers > 0)
         {
             ballRb.isKinematic = false;
@@ -114,35 +141,33 @@ public class GameplayManager : MonoBehaviour
             ballRb.isKinematic = false;
             ballRb.GetComponent<Ball>().Push(force);
             trajectory.Hide();
-            bombNumbers--;
+            isLastBomb = true;
         }
-
-        Invoke("Shooting",1f);
+        
+        canShooting = false;
     }
     #endregion
 
     void CreateBall()
     {
-        if(canShooting && bombNumbers > 0)
+        if(isLastBomb == false)
         {
             ballRb = Instantiate(ballPrefab).GetComponent<Rigidbody2D>();
             ballCol = ballRb.GetComponent<Collider2D>();
             ballCol.enabled = false;
 
+            ballRb.transform.position = centerPoint.position;
             ballRb.isKinematic = true;
+            canShooting = true;
             bombNumbers--;
             Debug.Log($"Boom left : {bombNumbers}");
         }
         
     }
 
-    public bool getIsDragging()
+    public int getBombLeft()
     {
-        return this.isDragging;
+        return this.bombNumbers;
     }
 
-    public void Shooting()
-    {
-        canShooting = true;
-    }
 }

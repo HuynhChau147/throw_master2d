@@ -12,8 +12,10 @@ public class Enemy : MonoBehaviour
     [SerializeField] private int SceneIndex;
     private bool isWin;
     
+
     private void Start() {
         animator = GetComponent<Animator>();
+        isWin = false;
     }
 
     private void OnCollisionEnter2D(Collision2D other) {
